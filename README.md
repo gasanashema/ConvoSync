@@ -62,5 +62,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Author
 
-Designed and Developed by **Shema**.
-[Linktree](https://linktr.ee/shema_dev)
+Designed and Developed by [**Shema**](https://linktr.ee/Shema_philbert).
