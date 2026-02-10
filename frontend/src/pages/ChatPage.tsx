@@ -5,6 +5,7 @@ import ChatSidebar from "../components/ChatSidebar";
 import ChatWindow from "../components/ChatWindow";
 import { socket } from "../socket";
 import axios from "axios";
+import { API_BASE_URL } from "../lib/utils";
 
 const ChatPage = () => {
   const { user, token, logout, isAuthenticated, isLoading } = useAuth();
@@ -33,7 +34,7 @@ const ChatPage = () => {
 
     const fetchChats = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/chat");
+        const res = await axios.get(`${API_BASE_URL}/chat`);
         setChats(res.data);
       } catch (err) {
         console.error("Failed to fetch chats", err);
@@ -125,9 +126,7 @@ const ChatPage = () => {
     setCurrentChat(chat);
     socket.emit("joinRoom", chat._id);
     try {
-      const res = await axios.get(
-        `http://localhost:3000/chat/${chat._id}/messages`,
-      );
+      const res = await axios.get(`${API_BASE_URL}/chat/${chat._id}/messages`);
       setMessages(res.data);
     } catch (err) {
       console.error("Failed to fetch messages", err);
@@ -136,7 +135,7 @@ const ChatPage = () => {
 
   const handleCreateChat = async (userId: string) => {
     try {
-      const res = await axios.post("http://localhost:3000/chat", { userId });
+      const res = await axios.post(`${API_BASE_URL}/chat`, { userId });
       const chat = res.data;
 
       // Update chat list if not exists
