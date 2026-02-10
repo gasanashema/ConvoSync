@@ -168,40 +168,51 @@ const ChatPage = () => {
 
   return (
     <div className="flex h-screen bg-background dark:bg-slate-950 overflow-hidden">
-      <ChatSidebar
-        chats={chats}
-        currentChatId={currentChat?._id}
-        onSelectChat={handleSelectChat}
-        onCreateChat={handleCreateChat}
-        currentUser={user}
-      />
-
-      {activeChat ? (
-        <ChatWindow
-          chat={activeChat}
-          messages={messages}
-          setMessages={setMessages}
+      {/* Sidebar: hidden on mobile if chat is active */}
+      <div
+        className={`${activeChat ? "hidden md:flex" : "flex"} w-full md:w-auto h-full`}
+      >
+        <ChatSidebar
+          chats={chats}
+          currentChatId={currentChat?._id}
+          onSelectChat={handleSelectChat}
+          onCreateChat={handleCreateChat}
           currentUser={user}
-          onTyping={handleTypingEmit}
-          typingUsers={typingUsers}
-          socket={socket}
         />
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-background dark:bg-slate-950">
-          <h2 className="text-2xl font-bold text-primary mb-4">
-            Welcome back, {user.username}!
-          </h2>
-          <p className="text-text-muted mb-8">
-            Select a conversation to start chatting.
-          </p>
-          <button
-            onClick={logout}
-            className="px-6 py-2 border border-gray-300 rounded text-text-muted hover:bg-gray-100 dark:hover:bg-slate-800 transition"
-          >
-            Logout
-          </button>
-        </div>
-      )}
+      </div>
+
+      {/* Chat Window: hidden on mobile if no chat is active */}
+      <div
+        className={`${!activeChat ? "hidden md:flex" : "flex"} flex-1 h-full`}
+      >
+        {activeChat ? (
+          <ChatWindow
+            chat={activeChat}
+            messages={messages}
+            setMessages={setMessages}
+            currentUser={user}
+            onTyping={handleTypingEmit}
+            typingUsers={typingUsers}
+            socket={socket}
+            onBack={() => setCurrentChat(null)}
+          />
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-background dark:bg-slate-950">
+            <h2 className="text-2xl font-bold text-primary mb-4">
+              Welcome back, {user.username}!
+            </h2>
+            <p className="text-text-muted mb-8">
+              Select a conversation to start chatting.
+            </p>
+            <button
+              onClick={logout}
+              className="px-6 py-2 border border-gray-300 rounded text-text-muted hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+            >
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

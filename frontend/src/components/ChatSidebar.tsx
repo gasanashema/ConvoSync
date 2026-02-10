@@ -121,7 +121,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="w-80 border-r border-gray-200 dark:border-gray-800 bg-surface dark:bg-slate-900 flex flex-col h-full">
+    <div className="w-full md:w-80 border-r border-gray-200 dark:border-gray-800 bg-surface dark:bg-slate-900 flex flex-col h-full">
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-3">
         <div
           className="relative group cursor-pointer"
