@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+@theme {
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-primary: #14B8A6;
+  --color-secondary: #22C55E;
+  --color-text-main: #0F172A;
+  --color-text-muted: #64748B;
+
+  --font-sans: "Inter", "sans-serif";
+}
+
+@layer base {
+  body {
+    @apply bg-background text-text-main antialiased;
+  }
+}
