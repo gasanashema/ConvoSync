@@ -24,6 +24,13 @@ export class UsersService {
     return this.userModel.find().exec()
   }
 
+  async findAllExcept(currentUserId: string): Promise<User[]> {
+    return this.userModel
+      .find({ _id: { $ne: currentUserId } })
+      .select('username email avatar status')
+      .exec()
+  }
+
   async searchUsers(query: string, currentUserId: string): Promise<User[]> {
     return this.userModel
       .find({

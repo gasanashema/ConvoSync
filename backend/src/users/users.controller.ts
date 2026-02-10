@@ -27,6 +27,11 @@ const uploadDir = isProduction ? os.tmpdir() : './uploads'
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get()
+  async findAll(@Request() req) {
+    return this.usersService.findAllExcept(req.user.userId)
+  }
+
   @Get('search')
   async searchUsers(@Query('q') query: string, @Request() req) {
     if (!query) return []

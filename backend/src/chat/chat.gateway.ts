@@ -113,7 +113,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       )
 
       this.server.to(chatId).emit('newMessage', populatedMessage)
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error handling sending message:', error)
+      client.emit('messageError', {
+        message: 'Failed to send message',
+        error: error.message,
+        payload,
+      })
+    }
   }
 
   @SubscribeMessage('typing')
@@ -126,5 +133,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       username: client.data.user.username,
       isTyping: payload.isTyping,
     })
+  }
+
+  @SubscribeMessage('reactToMessage')
+  async handleReaction(
+    @MessageBody() data: { messageId: string; emoji: string; chatId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const userId = client.data.user._id
+    const updatedMessage = await this.chatService.reactToMessage(
+      data.messageId,
+      userId,
+      data.emoji,
+    )
+    this.server.to(data.chatId).emit('messageReaction', updatedMessage)
   }
 }

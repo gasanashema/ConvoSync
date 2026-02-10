@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { User, Search, Plus, MessageSquare, Camera } from "lucide-react";
+import { User, Search, Plus, MessageSquare, Camera, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
@@ -31,6 +31,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { updateUser, token } = useAuth();
 
@@ -108,6 +110,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     }
   };
 
+  const handleDiscoverOpen = async () => {
+    setIsDiscoverOpen(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/users`);
+      setAllUsers(res.data);
+    } catch (err) {
+      console.error("Failed to fetch users", err);
+    }
+  };
+
   return (
     <div className="w-80 border-r border-gray-200 dark:border-gray-800 bg-surface dark:bg-slate-900 flex flex-col h-full">
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-3">
@@ -148,7 +160,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 space-y-4">
         <h2 className="text-xl font-bold text-primary flex items-center justify-between">
           Messages{" "}
-          <Plus className="w-5 h-5 cursor-pointer hover:text-secondary action-icon" />
+          <Plus
+            onClick={handleDiscoverOpen}
+            className="w-5 h-5 cursor-pointer hover:text-secondary action-icon"
+          />
         </h2>
 
         <div className="relative">
@@ -255,6 +270,72 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           ))
         )}
       </div>
+
+      {isDiscoverOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-text-main dark:text-white">
+                Discover People
+              </h2>
+              <button
+                onClick={() => setIsDiscoverOpen(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-2">
+              {allUsers.length === 0 ? (
+                <div className="p-8 text-center text-text-muted">
+                  No users found.
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {allUsers.map((user) => (
+                    <div
+                      key={user._id}
+                      className="p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg transition"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                          {user.avatar ? (
+                            <img
+                              src={`${API_BASE_URL}${user.avatar}`}
+                              alt={user.username}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User className="w-5 h-5 text-primary" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-text-main dark:text-gray-100">
+                            {user.username}
+                          </p>
+                          <p className="text-xs text-text-muted">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          startChat(user._id);
+                          setIsDiscoverOpen(false);
+                        }}
+                        className="px-3 py-1.5 bg-primary text-white text-sm rounded-md hover:bg-opacity-90 transition"
+                      >
+                        Message
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

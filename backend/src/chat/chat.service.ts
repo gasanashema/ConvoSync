@@ -43,7 +43,6 @@ export class ChatService {
   async createChat(participantIds: string[]): Promise<Chat> {
     const participants = participantIds.map((id) => new Types.ObjectId(id))
 
-
     if (participants.length === 2) {
       const existingChat = await this.chatModel.findOne({
         participants: { $all: participants },
@@ -63,5 +62,34 @@ export class ChatService {
       .populate('lastMessage')
       .sort({ updatedAt: -1 })
       .exec()
+  }
+  async reactToMessage(
+    messageId: string,
+    userId: string,
+    emoji: string,
+  ): Promise<Message> {
+    const message = await this.messageModel.findById(messageId)
+    if (!message) {
+      throw new Error('Message not found')
+    }
+
+    const existingReactionIndex = message.reactions.findIndex(
+      (r) => r.userId.toString() === userId,
+    )
+
+    if (existingReactionIndex > -1) {
+      if (message.reactions[existingReactionIndex].emoji === emoji) {
+        // Remove reaction if same emoji is clicked
+        message.reactions.splice(existingReactionIndex, 1)
+      } else {
+        // Update reaction
+        message.reactions[existingReactionIndex].emoji = emoji
+      }
+    } else {
+      // Add new reaction
+      message.reactions.push({ userId: new Types.ObjectId(userId), emoji })
+    }
+
+    return message.save()
   }
 }
