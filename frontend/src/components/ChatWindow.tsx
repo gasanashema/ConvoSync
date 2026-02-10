@@ -9,7 +9,7 @@ interface ChatWindowProps {
   currentUser: any;
   onSendMessage: (content: string, priority: string) => void;
   onTyping?: (isTyping: boolean) => void;
-  isTyping?: boolean;
+  typingUsers: string[];
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -18,14 +18,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   currentUser,
   onSendMessage,
   onTyping,
-  isTyping,
+  typingUsers,
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [priority, setPriority] = useState<"normal" | "important" | "urgent">(
     "normal",
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -120,9 +120,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             isOwn={msg.senderId._id === currentUser.id}
           />
         ))}
-        {isTyping && (
+        {typingUsers.length > 0 && (
           <div className="text-sm text-text-muted italic ml-4 animate-pulse">
-            Someone is typing...
+            {typingUsers.length === 1
+              ? `${typingUsers[0]} is typing...`
+              : `${typingUsers.length} people are typing...`}
           </div>
         )}
         <div ref={messagesEndRef} />
