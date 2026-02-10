@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, MoreVertical, AlertTriangle, Flag } from "lucide-react";
+import {
+  Send,
+  MoreVertical,
+  AlertTriangle,
+  Flag,
+  ArrowLeft,
+} from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import { cn } from "../lib/utils";
 
@@ -11,6 +17,7 @@ interface ChatWindowProps {
   onTyping?: (isTyping: boolean) => void;
   typingUsers: string[];
   socket: any;
+  onBack?: () => void;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -21,6 +28,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   onTyping,
   typingUsers,
   socket,
+  onBack,
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [priority, setPriority] = useState<"normal" | "important" | "urgent">(
@@ -204,6 +212,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     <div className="flex-1 flex flex-col h-full bg-background dark:bg-slate-950">
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-surface dark:bg-slate-900 flex justify-between items-center shadow-sm z-10">
         <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-500" />
+            </button>
+          )}
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
             {getChatName()[0]?.toUpperCase()}
           </div>
