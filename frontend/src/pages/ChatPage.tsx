@@ -153,16 +153,6 @@ const ChatPage = () => {
     }
   };
 
-  const handleSendMessage = (content: string, priority: string) => {
-    if (!currentChat) return;
-
-    socket.emit("sendMessage", {
-      chatId: currentChat._id,
-      content,
-      priority,
-    });
-  };
-
   const handleTypingEmit = (isTyping: boolean) => {
     if (!currentChat) return;
     socket.emit("typing", {
