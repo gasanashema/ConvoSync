@@ -6,19 +6,21 @@ import { cn } from "../lib/utils";
 interface ChatWindowProps {
   chat: any;
   messages: any[];
+  setMessages: React.Dispatch<React.SetStateAction<any[]>>;
   currentUser: any;
-  onSendMessage: (content: string, priority: string) => void;
   onTyping?: (isTyping: boolean) => void;
   typingUsers: string[];
+  socket: any;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({
   chat,
   messages,
+  setMessages,
   currentUser,
-  onSendMessage,
   onTyping,
   typingUsers,
+  socket,
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [priority, setPriority] = useState<"normal" | "important" | "urgent">(
@@ -32,8 +34,54 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (socket) {
+      socket.on("newMessage", (message: any) => {
+        if (message.chatId === chat._id) {
+          setMessages((prev) => {
+            // Optimistic replacement & deduplication
+            if (prev.some((m) => m._id === message._id)) return prev;
+
+            const tempMessageIndex = prev.findIndex(
+              (m) =>
+                m._id.startsWith("temp-") &&
+                m.content === message.content &&
+                m.senderId._id === message.senderId._id,
+            );
+
+            if (tempMessageIndex !== -1) {
+              const newMessages = [...prev];
+              newMessages[tempMessageIndex] = message;
+              return newMessages;
+            }
+
+            return [...prev, message];
+          });
+        }
+      });
+
+      socket.on("messageReaction", (updatedMessage: any) => {
+        if (updatedMessage.chatId === chat._id) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m._id === updatedMessage._id ? updatedMessage : m,
+            ),
+          );
+        }
+      });
+
+      socket.on("messageError", (error: any) => {
+        console.error("Message sending error:", error);
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("newMessage");
+        socket.off("messageReaction");
+        socket.off("messageError");
+      }
+    };
+  }, [socket, chat._id, currentUser.id]);
 
   useEffect(() => {
     return () => {
@@ -43,15 +91,83 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     };
   }, []);
 
-  const handleSend = (e: React.FormEvent) => {
+  // Scroll on messages update
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
-    onSendMessage(newMessage, priority);
+    if (!newMessage.trim() || !socket) return;
+
+    // Explicitly stop typing when sending
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    onTyping?.(false);
+
+    const content = newMessage;
     setNewMessage("");
     setPriority("normal");
 
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    onTyping?.(false);
+    // Optimistic UI Update
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage = {
+      _id: tempId,
+      content: content,
+      senderId: { _id: currentUser.id, username: currentUser.username },
+      priority: priority as "normal" | "important" | "urgent",
+      createdAt: new Date().toISOString(),
+      chatId: chat._id,
+      status: "sending",
+      reactions: [],
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+
+    try {
+      // Emit message to server
+      socket.emit("sendMessage", {
+        chatId: chat._id,
+        content: content,
+        priority,
+      });
+    } catch (err) {
+      console.error("Failed to emit message:", err);
+    }
+
+    // onSendMessage(content, priority); // Handling internally now
+  };
+
+  const handleReact = (messageId: string, emoji: string) => {
+    if (!socket) return;
+    socket.emit("reactToMessage", {
+      chatId: chat._id,
+      messageId,
+      emoji,
+    });
+
+    // Optimistic reaction update
+    setMessages((prev) =>
+      prev.map((m) => {
+        if (m._id === messageId) {
+          const reactions = m.reactions ? [...m.reactions] : [];
+          const existingIdx = reactions.findIndex(
+            (r: any) => r.userId === currentUser.id,
+          ); // Type any/fix later
+
+          if (existingIdx > -1) {
+            if (reactions[existingIdx].emoji === emoji) {
+              reactions.splice(existingIdx, 1);
+            } else {
+              reactions[existingIdx].emoji = emoji;
+            }
+          } else {
+            reactions.push({ userId: currentUser.id, emoji });
+          }
+          return { ...m, reactions };
+        }
+        return m;
+      }),
+    );
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +234,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             key={msg._id}
             message={msg}
             isOwn={msg.senderId._id === currentUser.id}
+            onReact={(emoji) => handleReact(msg._id, emoji)}
           />
         ))}
         {typingUsers.length > 0 && (
@@ -131,7 +248,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       <div className="p-4 bg-surface dark:bg-slate-900 border-t border-gray-200 dark:border-gray-800">
-        <form onSubmit={handleSend} className="flex flex-col gap-2">
+        <form onSubmit={handleSendMessage} className="flex flex-col gap-2">
           <div className="flex gap-2 mb-2">
             <button
               type="button"

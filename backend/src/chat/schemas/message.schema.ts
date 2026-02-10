@@ -22,6 +22,12 @@ export class Message {
 
   @Prop({ enum: ['text', 'image', 'file'], default: 'text' })
   type: string
+
+  @Prop({
+    type: [{ userId: { type: Types.ObjectId, ref: 'User' }, emoji: String }],
+    default: [],
+  })
+  reactions: { userId: Types.ObjectId; emoji: string }[]
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message)

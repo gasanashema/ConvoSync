@@ -190,10 +190,11 @@ const ChatPage = () => {
         <ChatWindow
           chat={activeChat}
           messages={messages}
+          setMessages={setMessages}
           currentUser={user}
-          onSendMessage={handleSendMessage}
           onTyping={handleTypingEmit}
           typingUsers={typingUsers}
+          socket={socket}
         />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-background dark:bg-slate-950">
