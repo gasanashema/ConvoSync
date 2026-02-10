@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../lib/utils";
 
 interface User {
   id: string;
@@ -22,7 +23,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = "http://localhost:3000/auth";
+const API_URL = `${API_BASE_URL}/auth`;
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

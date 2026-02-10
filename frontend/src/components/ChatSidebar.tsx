@@ -3,6 +3,7 @@ import { User, Search, Plus, MessageSquare, Camera } from "lucide-react";
 import { cn } from "../lib/utils";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { API_BASE_URL } from "../lib/utils";
 
 interface Chat {
   _id: string;
@@ -39,9 +40,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
     if (query.trim().length > 1) {
       try {
-        const res = await axios.get(
-          `http://localhost:3000/users/search?q=${query}`,
-        );
+        const res = await axios.get(`${API_BASE_URL}/users/search?q=${query}`);
         setSearchResults(res.data);
         setIsSearching(true);
       } catch (err) {
@@ -93,7 +92,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/users/upload-avatar",
+        `${API_BASE_URL}/users/upload-avatar`,
         formData,
         {
           headers: {
@@ -119,7 +118,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
             {currentUser.avatar ? (
               <img
-                src={`http://localhost:3000${currentUser.avatar}`}
+                src={`${API_BASE_URL}${currentUser.avatar}`}
                 alt={currentUser.username}
                 className="w-full h-full object-cover"
               />
@@ -184,7 +183,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   <div className="relative w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary overflow-hidden">
                     {user.avatar ? (
                       <img
-                        src={`http://localhost:3000${user.avatar}`}
+                        src={`${API_BASE_URL}${user.avatar}`}
                         alt={user.username}
                         className="w-full h-full object-cover"
                       />
@@ -225,7 +224,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               <div className="relative w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden shrink-0">
                 {getChatAvatar(chat) ? (
                   <img
-                    src={`http://localhost:3000${getChatAvatar(chat)}`}
+                    src={`${API_BASE_URL}${getChatAvatar(chat)}`}
                     alt={getChatName(chat)}
                     className="w-full h-full object-cover"
                   />
