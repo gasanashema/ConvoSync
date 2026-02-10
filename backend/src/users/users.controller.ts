@@ -15,6 +15,13 @@ import { extname } from 'path'
 import { UsersService } from './users.service'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 
+import * as os from 'os'
+import { join } from 'path'
+
+// Determine upload directory
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL
+const uploadDir = isProduction ? os.tmpdir() : './uploads'
+
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
@@ -30,7 +37,7 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads',
+        destination: uploadDir,
         filename: (req, file, callback) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9)
